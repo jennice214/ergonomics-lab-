@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>2차 실습 결과 그래프</title>
+<style>
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #fff; padding: 32px; color: #222; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 24px; color: #111; }
+  .section-label { font-size: 13px; font-weight: 600; color: #555; margin: 32px 0 8px; }
+  .chart-wrap { position: relative; width: 100%; height: 240px; margin-bottom: 8px; }
+  .chart-wrap-tall { position: relative; width: 100%; height: 260px; margin-bottom: 8px; }
+  .legend { display: flex; gap: 20px; font-size: 12px; color: #555; margin-bottom: 24px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend-box { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  .cards { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .card { background: #f5f5f3; border-radius: 8px; padding: 14px 18px; flex: 1; min-width: 140px; }
+  .card .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .card .val { font-size: 18px; font-weight: 600; }
+  .card .sub { font-size: 13px; color: #666; margin-top: 2px; }
+  .blue { color: #3266ad; } .green { color: #1D9E75; }
+  hr { border: none; border-top: 1px solid #eee; margin: 8px 0 24px; }
+</style>
+</head>
+<body>
+<h1>2차 실습 — 결과 시각화 자료</h1>
+
+<div class="cards">
+  <div class="card"><div class="label">그룹1 읽기속도</div><div class="val"><span class="blue">99.7s</span> / <span class="green">79.0s</span></div><div class="sub">디지털 / 인쇄물</div></div>
+  <div class="card"><div class="label">그룹2 읽기속도</div><div class="val"><span class="blue">70.7s</span> / <span class="green">74.0s</span></div><div class="sub">디지털 / 인쇄물</div></div>
+  <div class="card"><div class="label">이해정확도 전체평균</div><div class="val"><span class="blue">72.2%</span> / <span class="green">100%</span></div><div class="sub">디지털 / 인쇄물</div></div>
+  <div class="card"><div class="label">피로도 그룹1 평균</div><div class="val"><span class="blue">4.11</span> / <span class="green">4.89</span></div><div class="sub">디지털 / 인쇄물</div></div>
+</div>
+
+<div class="legend">
+  <span><span class="legend-box" style="background:#3266ad"></span>디지털</span>
+  <span><span class="legend-box" style="background:#1D9E75"></span>인쇄물</span>
+</div>
+
+<div class="section-label">① 읽기속도 비교 — 그룹별 평균 (초)</div>
+<div class="chart-wrap"><canvas id="c1" role="img" aria-label="읽기속도 비교 막대 차트"></canvas></div>
+<hr>
+
+<div class="section-label">② 이해정확도 — 피험자별 정답률 (%)</div>
+<div class="chart-wrap-tall"><canvas id="c2" role="img" aria-label="이해정확도 피험자별 막대 차트"></canvas></div>
+<hr>
+
+<div class="section-label">③ 시각적 피로도 평균 — 매체 × 그룹 (5점 척도, 높을수록 편안함)</div>
+<div class="chart-wrap"><canvas id="c3" role="img" aria-label="피로도 그룹별 막대 차트"></canvas></div>
+<hr>
+
+<div class="section-label">④ 피로도 세부항목 — 그룹1 (10pt): 선명도·편안함·가독성</div>
+<div class="chart-wrap-tall"><canvas id="c4" role="img" aria-label="피로도 세부항목 막대 차트"></canvas></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const BLUE='#3266ad', GREEN='#1D9E75', tColor='#666', gColor='rgba(0,0,0,0.07)';
+const base = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+  scales:{
+    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
+    y:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}}
+  }
+};
+
+new Chart(document.getElementById('c1'),{
+  type:'bar',
+  data:{
+    labels:['그룹1 (10pt)','그룹2 (16pt)'],
+    datasets:[
+      {label:'디지털',data:[99.7,70.7],backgroundColor:BLUE,borderRadius:5},
+      {label:'인쇄물',data:[79.0,74.0],backgroundColor:GREEN,borderRadius:5}
+    ]
+  },
+  options:{...base,scales:{
+    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
+    y:{min:0,max:120,ticks:{color:tColor,font:{size:12},callback:v=>v+'s'},grid:{color:gColor}}
+  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'초'}}}}
+});
+
+new Chart(document.getElementById('c2'),{
+  type:'bar',
+  data:{
+    labels:['A 안승진','B 김춘수','C 오은민','D 배재현','E 정민재','F 이상용'],
+    datasets:[
+      {label:'디지털',data:[67,100,67,67,33,100],backgroundColor:BLUE,borderRadius:5},
+      {label:'인쇄물',data:[100,100,100,100,100,100],backgroundColor:GREEN,borderRadius:5}
+    ]
+  },
+  options:{...base,scales:{
+    x:{ticks:{color:tColor,font:{size:11},autoSkip:false},grid:{color:gColor}},
+    y:{min:0,max:115,ticks:{color:tColor,font:{size:12},callback:v=>v+'%'},grid:{color:gColor}}
+  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'%'}}}}
+});
+
+new Chart(document.getElementById('c3'),{
+  type:'bar',
+  data:{
+    labels:['그룹1 (10pt)','그룹2 (16pt)'],
+    datasets:[
+      {label:'디지털',data:[4.11,4.78],backgroundColor:BLUE,borderRadius:5},
+      {label:'인쇄물',data:[4.89,3.89],backgroundColor:GREEN,borderRadius:5}
+    ]
+  },
+  options:{...base,scales:{
+    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
+    y:{min:0,max:5.5,ticks:{color:tColor,font:{size:12},callback:v=>v.toFixed(1)},grid:{color:gColor}}
+  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(2)}}}}
+});
+
+new Chart(document.getElementById('c4'),{
+  type:'bar',
+  data:{
+    labels:['선명도(디)','편안함(디)','가독성(디)','선명도(인)','편안함(인)','가독성(인)'],
+    datasets:[
+      {label:'A 안승진',data:[3,4,4,5,5,5],backgroundColor:'#3266ad',borderRadius:4},
+      {label:'B 김춘수',data:[4,5,4,5,5,5],backgroundColor:'#6a9fd8',borderRadius:4},
+      {label:'C 오은민',data:[5,4,4,5,4,5],backgroundColor:'#a8c8f0',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{color:tColor,font:{size:11},boxWidth:10,padding:12}}},
+    scales:{
+      x:{ticks:{color:tColor,font:{size:10},autoSkip:false,maxRotation:25},grid:{color:gColor}},
+      y:{min:0,max:6,ticks:{color:tColor,font:{size:12}},grid:{color:gColor}}
+    }
+  }
+});
+</script>
+</body>
+</html>
