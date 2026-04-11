@@ -2,131 +2,236 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>2차 실습 결과 그래프</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인간공학 실습 2 | 실험 결과 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #fff; padding: 32px; color: #222; max-width: 900px; margin: 0 auto; }
-  h1 { font-size: 18px; font-weight: 600; margin-bottom: 24px; color: #111; }
-  .section-label { font-size: 13px; font-weight: 600; color: #555; margin: 32px 0 8px; }
-  .chart-wrap { position: relative; width: 100%; height: 240px; margin-bottom: 8px; }
-  .chart-wrap-tall { position: relative; width: 100%; height: 260px; margin-bottom: 8px; }
-  .legend { display: flex; gap: 20px; font-size: 12px; color: #555; margin-bottom: 24px; }
-  .legend span { display: flex; align-items: center; gap: 6px; }
-  .legend-box { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
-  .cards { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
-  .card { background: #f5f5f3; border-radius: 8px; padding: 14px 18px; flex: 1; min-width: 140px; }
-  .card .label { font-size: 11px; color: #888; margin-bottom: 4px; }
-  .card .val { font-size: 18px; font-weight: 600; }
-  .card .sub { font-size: 13px; color: #666; margin-top: 2px; }
-  .blue { color: #3266ad; } .green { color: #1D9E75; }
-  hr { border: none; border-top: 1px solid #eee; margin: 8px 0 24px; }
+:root{--bg:#f5f6fa;--card:#ffffff;--border:#e2e6f0;--blue:#3b6fd4;--blue2:#6a9fd8;--blue3:#a8c8f0;--text:#1a2035;--muted:#6b7490;--grid:rgba(0,0,0,0.06);--green:#2e9e6b;--green2:#6dc4a0;--green3:#a8dfc6;--amber:#d4891a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.6;padding:32px 24px;}
+.header{text-align:center;margin-bottom:48px;}
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--blue);border:1px solid var(--blue);padding:4px 12px;border-radius:20px;margin-bottom:14px;}
+.header h1{font-size:24px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.header p{color:var(--muted);font-size:13px;}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:44px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sc.b::before{background:var(--blue);}
+.sc.g::before{background:var(--green);}
+.sc.a::before{background:var(--amber);}
+.sc .lbl{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.08em;margin-bottom:10px;}
+.sc .val{font-size:26px;font-weight:700;margin-bottom:4px;}
+.sc.b .val{color:var(--blue);}
+.sc.g .val{color:var(--green);}
+.sc.a .val{color:var(--amber);}
+.sc .sub{font-size:12px;color:var(--muted);}
+.section{margin-bottom:44px;}
+.section-header{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+.sn{font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);letter-spacing:.1em;}
+.st{font-size:15px;font-weight:700;color:var(--text);}
+.ss{font-size:12px;color:var(--muted);margin-left:auto;}
+.chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.chart-card.full{grid-column:1/-1;}
+.hypo{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 10px;border-radius:20px;margin-bottom:14px;font-family:'DM Mono',monospace;}
+.hypo.match{background:rgba(46,158,107,.1);color:var(--green);border:1px solid rgba(46,158,107,.3);}
+.hypo.partial{background:rgba(212,137,26,.1);color:var(--amber);border:1px solid rgba(212,137,26,.3);}
+.hypo.note{background:rgba(59,111,212,.1);color:var(--blue);border:1px solid rgba(59,111,212,.25);}
+.chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;}
+.data-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px;}
+.data-table th{background:#f0f2f8;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:8px 14px;text-align:center;border-bottom:1px solid var(--border);}
+.data-table td{padding:8px 14px;text-align:center;border-bottom:1px solid #f0f2f8;color:var(--text);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table .avg-row td{background:#eef2fc;color:var(--blue);font-weight:600;border-top:1px solid var(--border);}
+.data-table td:first-child{text-align:left;color:var(--muted);}
+.data-table .avg-row td:first-child{color:var(--blue);}
+.insight{background:#f0f4fc;border:1px solid #d0daee;border-radius:8px;padding:12px 16px;font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;}
+.insight strong{color:var(--text);}
+.divider{border:none;border-top:2px dashed var(--border);margin:48px 0;}
+@media(max-width:700px){.summary-row{grid-template-columns:1fr;}.chart-grid-2{grid-template-columns:1fr;}.chart-card.full{grid-column:auto;}}
 </style>
 </head>
 <body>
-<h1>2차 실습 — 결과 시각화 자료</h1>
 
-<div class="cards">
-  <div class="card"><div class="label">그룹1 읽기속도</div><div class="val"><span class="blue">99.7s</span> / <span class="green">79.0s</span></div><div class="sub">디지털 / 인쇄물</div></div>
-  <div class="card"><div class="label">그룹2 읽기속도</div><div class="val"><span class="blue">70.7s</span> / <span class="green">74.0s</span></div><div class="sub">디지털 / 인쇄물</div></div>
-  <div class="card"><div class="label">이해정확도 전체평균</div><div class="val"><span class="blue">72.2%</span> / <span class="green">100%</span></div><div class="sub">디지털 / 인쇄물</div></div>
-  <div class="card"><div class="label">피로도 그룹1 평균</div><div class="val"><span class="blue">4.11</span> / <span class="green">4.89</span></div><div class="sub">디지털 / 인쇄물</div></div>
+<div class="header">
+  <div class="badge">인간공학 및 실습 — 9조 — 2차 실험</div>
+  <h1>디지털 vs 인쇄물 가독성 비교 실험</h1>
+  <p>혼합설계(Mixed-design) · 피험자 6명 · 폰트 크기 10pt / 16pt</p>
 </div>
 
-<div class="legend">
-  <span><span class="legend-box" style="background:#3266ad"></span>디지털</span>
-  <span><span class="legend-box" style="background:#1D9E75"></span>인쇄물</span>
+<!-- 요약 카드 -->
+<div class="summary-row">
+  <div class="sc b">
+    <div class="lbl">읽기속도 — 인쇄물 우위</div>
+    <div class="val">−12.0초</div>
+    <div class="sub">전체 평균 차이 (인쇄물이 더 빠름)</div>
+  </div>
+  <div class="sc g">
+    <div class="lbl">이해정확도 — 전체 평균</div>
+    <div class="val">89% / 83%</div>
+    <div class="sub">디지털 89% · 인쇄물 83%</div>
+  </div>
+  <div class="sc a">
+    <div class="lbl">시각적 피로도 — 인쇄물 우위</div>
+    <div class="val">+0.83</div>
+    <div class="sub">그룹1·2 모두 인쇄물이 더 편안함</div>
+  </div>
 </div>
 
-<div class="section-label">① 읽기속도 비교 — 그룹별 평균 (초)</div>
-<div class="chart-wrap"><canvas id="c1" role="img" aria-label="읽기속도 비교 막대 차트"></canvas></div>
-<hr>
+<!-- ═══ 핵심 그래프 ═══ -->
 
-<div class="section-label">② 이해정확도 — 피험자별 정답률 (%)</div>
-<div class="chart-wrap-tall"><canvas id="c2" role="img" aria-label="이해정확도 피험자별 막대 차트"></canvas></div>
-<hr>
+<!-- GRAPH 01 읽기속도 -->
+<div class="section">
+  <div class="section-header">
+    <span class="sn">GRAPH 01</span>
+    <span class="st">읽기속도 — 그룹별 매체 평균 비교 (초)</span>
+    <span class="ss">가설: 인쇄물이 디지털보다 빠를 것</span>
+  </div>
+  <div class="chart-card">
+    <div class="hypo match">✓ 그룹1·2 모두 인쇄물 우위 — 가설 일치</div>
+    <div style="position:relative;height:280px"><canvas id="speed"></canvas></div>
+    <table class="data-table">
+      <tr><th>구분</th><th>디지털 평균(초)</th><th>인쇄물 평균(초)</th><th>차이</th></tr>
+      <tr><td>그룹1 (10pt)</td><td>93.0</td><td>72.3</td><td>−20.7초 (인쇄물 빠름)</td></tr>
+      <tr><td>그룹2 (16pt)</td><td>74.0</td><td>70.7</td><td>−3.3초 (인쇄물 빠름)</td></tr>
+    </table>
+  </div>
+  <div class="insight"><strong>해석:</strong> 그룹1(10pt)에서 인쇄물이 20.7초 빨라 매체 차이가 뚜렷하다. 그룹2(16pt)에서도 인쇄물이 3.3초 빠르나 차이가 작다. 두 그룹 모두 인쇄물 우위로 가설과 일치하며, 폰트 크기가 클수록 매체 간 속도 차이가 감소하는 경향이 확인된다.</div>
+</div>
 
-<div class="section-label">③ 시각적 피로도 평균 — 매체 × 그룹 (5점 척도, 높을수록 편안함)</div>
-<div class="chart-wrap"><canvas id="c3" role="img" aria-label="피로도 그룹별 막대 차트"></canvas></div>
-<hr>
+<!-- GRAPH 02 이해정확도 -->
+<div class="section">
+  <div class="section-header">
+    <span class="sn">GRAPH 02</span>
+    <span class="st">이해 정확도 — 피험자별 정답률 (%)</span>
+    <span class="ss">가설: 인쇄물이 디지털보다 높을 것</span>
+  </div>
+  <div class="chart-card">
+    <div class="hypo partial">△ 그룹1 가설 일치 · 그룹2 지문 난이도 영향</div>
+    <div style="position:relative;height:300px"><canvas id="acc"></canvas></div>
+    <table class="data-table">
+      <tr><th>피험자</th><th>폰트</th><th>디지털 정답률</th><th>인쇄물 정답률</th></tr>
+      <tr><td>A 안승진</td><td>10pt</td><td>67%</td><td>100%</td></tr>
+      <tr><td>B 김춘수</td><td>10pt</td><td>100%</td><td>100%</td></tr>
+      <tr><td>C 오은민</td><td>10pt</td><td>67%</td><td>100%</td></tr>
+      <tr><td>D 배재현</td><td>16pt</td><td>100%</td><td>67%</td></tr>
+      <tr><td>E 정민재</td><td>16pt</td><td>100%</td><td>33%</td></tr>
+      <tr><td>F 이상용</td><td>16pt</td><td>100%</td><td>100%</td></tr>
+      <tr class="avg-row"><td>그룹1 평균</td><td>10pt</td><td>78%</td><td>100%</td></tr>
+      <tr class="avg-row"><td>그룹2 평균</td><td>16pt</td><td>100%</td><td>67%</td></tr>
+      <tr class="avg-row"><td>전체 평균</td><td>—</td><td>89%</td><td>83%</td></tr>
+    </table>
+  </div>
+  <div class="insight"><strong>해석:</strong> 그룹1(10pt)에서는 인쇄물(100%)이 디지털(78%)보다 높아 가설과 일치한다. 그룹2(16pt)에서는 디지털(지문B·카페인) 100%, 인쇄물(지문A·게임이론) 67%로 역전되나, 이는 매체 효과보다 <strong>지문 난이도 차이</strong>에 기인할 가능성이 크다. 지문B는 전 그룹 만점이 나올 만큼 쉬웠으며, 피험자A는 이미 접한 내용임을 언급하였다.</div>
+</div>
 
-<div class="section-label">④ 피로도 세부항목 — 그룹1 (10pt): 선명도·편안함·가독성</div>
-<div class="chart-wrap-tall"><canvas id="c4" role="img" aria-label="피로도 세부항목 막대 차트"></canvas></div>
+<!-- GRAPH 03 피로도 평균 -->
+<div class="section">
+  <div class="section-header">
+    <span class="sn">GRAPH 03</span>
+    <span class="st">시각적 피로도 평균 (5점 척도, 높을수록 편안함)</span>
+    <span class="ss">가설: 인쇄물이 디지털보다 편안할 것</span>
+  </div>
+  <div class="chart-card">
+    <div class="hypo match">✓ 그룹1·2 모두 인쇄물 우위 — 가설 일치</div>
+    <div style="position:relative;height:280px"><canvas id="fatigue"></canvas></div>
+    <table class="data-table">
+      <tr><th>구분</th><th>디지털 평균</th><th>인쇄물 평균</th><th>차이</th></tr>
+      <tr><td>그룹1 (10pt)</td><td>4.11</td><td>4.89</td><td>+0.78</td></tr>
+      <tr><td>그룹2 (16pt)</td><td>3.89</td><td>4.78</td><td>+0.89</td></tr>
+    </table>
+  </div>
+  <div class="insight"><strong>해석:</strong> 그룹1(10pt)과 그룹2(16pt) 모두 인쇄물 피로도 평균이 디지털보다 높아 가설과 일치한다. 그룹2에서 디지털 평균(3.89)이 낮은 것은 F(이상용)의 편안함 점수(2점)가 끌어내린 영향이 있다.</div>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<hr class="divider">
+
+<!-- ═══ 세부 보조 그래프 ═══ -->
+<div style="text-align:center;margin-bottom:32px;">
+  <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em;">SUPPLEMENTARY — 세부 보조 분석</span>
+</div>
+
+<!-- GRAPH 04 읽기속도 피험자별 -->
+<div class="section">
+  <div class="section-header">
+    <span class="sn">GRAPH 04</span>
+    <span class="st">읽기속도 — 피험자별 상세</span>
+    <span class="ss">그룹1(10pt) · 그룹2(16pt)</span>
+  </div>
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">그룹1 (10pt) — 디지털 vs 인쇄물</div>
+      <div style="position:relative;height:220px"><canvas id="speed1"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">그룹2 (16pt) — 인쇄물 vs 디지털</div>
+      <div style="position:relative;height:220px"><canvas id="speed2"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAPH 05 피로도 세부항목 -->
+<div class="section">
+  <div class="section-header">
+    <span class="sn">GRAPH 05</span>
+    <span class="st">피로도 세부 항목 — 선명도 · 편안함 · 가독성</span>
+    <span class="ss">그룹1(10pt) · 그룹2(16pt)</span>
+  </div>
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <div class="hypo note">그룹1 (10pt)</div>
+      <div style="position:relative;height:220px"><canvas id="detail1"></canvas></div>
+      <table class="data-table">
+        <tr><th>피험자</th><th>디지털 선명도</th><th>디지털 편안함</th><th>디지털 가독성</th><th>인쇄물 선명도</th><th>인쇄물 편안함</th><th>인쇄물 가독성</th></tr>
+        <tr><td>A 안승진</td><td>3</td><td>4</td><td>4</td><td>5</td><td>5</td><td>5</td></tr>
+        <tr><td>B 김춘수</td><td>4</td><td>5</td><td>4</td><td>5</td><td>5</td><td>5</td></tr>
+        <tr><td>C 오은민</td><td>5</td><td>4</td><td>4</td><td>5</td><td>4</td><td>5</td></tr>
+        <tr class="avg-row"><td>평균</td><td>4.0</td><td>4.3</td><td>4.0</td><td>5.0</td><td>4.7</td><td>5.0</td></tr>
+      </table>
+    </div>
+    <div class="chart-card">
+      <div class="hypo note">그룹2 (16pt)</div>
+      <div style="position:relative;height:220px"><canvas id="detail2"></canvas></div>
+      <table class="data-table">
+        <tr><th>피험자</th><th>디지털 선명도</th><th>디지털 편안함</th><th>디지털 가독성</th><th>인쇄물 선명도</th><th>인쇄물 편안함</th><th>인쇄물 가독성</th></tr>
+        <tr><td>D 배재현</td><td>4</td><td>4</td><td>5</td><td>5</td><td>4</td><td>5</td></tr>
+        <tr><td>E 정민재</td><td>4</td><td>4</td><td>5</td><td>5</td><td>5</td><td>5</td></tr>
+        <tr><td>F 이상용</td><td>4</td><td>2</td><td>3</td><td>5</td><td>5</td><td>4</td></tr>
+        <tr class="avg-row"><td>평균</td><td>4.0</td><td>3.3</td><td>4.3</td><td>5.0</td><td>4.7</td><td>4.7</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="insight"><strong>해석:</strong> 두 그룹 모두 인쇄물 선명도(5.0)가 디지털(4.0)보다 일관되게 높다. 그룹2에서 F(이상용)의 디지털 편안함(2점)·가독성(3점)이 낮아 디지털 평균을 끌어내렸다. 선명도 항목에서 매체 차이가 가장 일관되게 나타난다.</div>
+</div>
+
 <script>
-const BLUE='#3266ad', GREEN='#1D9E75', tColor='#666', gColor='rgba(0,0,0,0.07)';
-const base = {
-  responsive:true, maintainAspectRatio:false,
-  plugins:{legend:{display:false}},
-  scales:{
-    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
-    y:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}}
-  }
-};
+const M='#6b7490',G='rgba(0,0,0,0.06)';
+const B1='#3b6fd4',B2='#6a9fd8',B3='#a8c8f0';
+const GR='#2e9e6b',GR2='#6dc4a0',GR3='#a8dfc6';
+const leg={display:true,labels:{color:M,font:{size:11},boxWidth:12,padding:10}};
+const legSm={display:true,position:'top',labels:{color:M,font:{size:10},boxWidth:10,padding:8}};
 
-new Chart(document.getElementById('c1'),{
-  type:'bar',
-  data:{
-    labels:['그룹1 (10pt)','그룹2 (16pt)'],
-    datasets:[
-      {label:'디지털',data:[99.7,70.7],backgroundColor:BLUE,borderRadius:5},
-      {label:'인쇄물',data:[79.0,74.0],backgroundColor:GREEN,borderRadius:5}
-    ]
-  },
-  options:{...base,scales:{
-    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
-    y:{min:0,max:120,ticks:{color:tColor,font:{size:12},callback:v=>v+'s'},grid:{color:gColor}}
-  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'초'}}}}
-});
+const base=(yMax,cb)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:{ticks:{color:M,font:{size:11}},grid:{color:G},border:{color:G}},y:{max:yMax,ticks:{color:M,font:{size:11},callback:cb||undefined},grid:{color:G},border:{color:G}}}});
 
-new Chart(document.getElementById('c2'),{
-  type:'bar',
-  data:{
-    labels:['A 안승진','B 김춘수','C 오은민','D 배재현','E 정민재','F 이상용'],
-    datasets:[
-      {label:'디지털',data:[67,100,67,67,33,100],backgroundColor:BLUE,borderRadius:5},
-      {label:'인쇄물',data:[100,100,100,100,100,100],backgroundColor:GREEN,borderRadius:5}
-    ]
-  },
-  options:{...base,scales:{
-    x:{ticks:{color:tColor,font:{size:11},autoSkip:false},grid:{color:gColor}},
-    y:{min:0,max:115,ticks:{color:tColor,font:{size:12},callback:v=>v+'%'},grid:{color:gColor}}
-  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'%'}}}}
-});
+// GRAPH 01
+new Chart(document.getElementById('speed'),{type:'bar',data:{labels:['그룹1 (10pt)','그룹2 (16pt)'],datasets:[{label:'디지털',data:[93.0,74.0],backgroundColor:B1,borderRadius:5,barPercentage:.55},{label:'인쇄물',data:[72.3,70.7],backgroundColor:GR,borderRadius:5,barPercentage:.55}]},options:{...base(110,v=>v+'초'),plugins:{legend:leg},scales:{x:{ticks:{color:M,font:{size:12}},grid:{color:G},border:{color:G}},y:{min:50,max:110,ticks:{color:M,font:{size:11},callback:v=>v+'초'},grid:{color:G},border:{color:G}}}}});
 
-new Chart(document.getElementById('c3'),{
-  type:'bar',
-  data:{
-    labels:['그룹1 (10pt)','그룹2 (16pt)'],
-    datasets:[
-      {label:'디지털',data:[4.11,4.78],backgroundColor:BLUE,borderRadius:5},
-      {label:'인쇄물',data:[4.89,3.89],backgroundColor:GREEN,borderRadius:5}
-    ]
-  },
-  options:{...base,scales:{
-    x:{ticks:{color:tColor,font:{size:12}},grid:{color:gColor}},
-    y:{min:0,max:5.5,ticks:{color:tColor,font:{size:12},callback:v=>v.toFixed(1)},grid:{color:gColor}}
-  },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(2)}}}}
-});
+// GRAPH 02
+new Chart(document.getElementById('acc'),{type:'bar',data:{labels:['A','B','C','그룹1\n평균','D','E','F','그룹2\n평균','전체\n평균'],datasets:[{label:'디지털',data:[67,100,67,78,100,100,100,100,89],backgroundColor:B1,borderRadius:4},{label:'인쇄물',data:[100,100,100,100,67,33,100,67,83],backgroundColor:GR,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:{ticks:{color:M,font:{size:11}},grid:{color:G},border:{color:G}},y:{max:115,ticks:{color:M,font:{size:11},callback:v=>v+'%'},grid:{color:G},border:{color:G}}}}});
 
-new Chart(document.getElementById('c4'),{
-  type:'bar',
-  data:{
-    labels:['선명도(디)','편안함(디)','가독성(디)','선명도(인)','편안함(인)','가독성(인)'],
-    datasets:[
-      {label:'A 안승진',data:[3,4,4,5,5,5],backgroundColor:'#3266ad',borderRadius:4},
-      {label:'B 김춘수',data:[4,5,4,5,5,5],backgroundColor:'#6a9fd8',borderRadius:4},
-      {label:'C 오은민',data:[5,4,4,5,4,5],backgroundColor:'#a8c8f0',borderRadius:4}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:true,position:'top',labels:{color:tColor,font:{size:11},boxWidth:10,padding:12}}},
-    scales:{
-      x:{ticks:{color:tColor,font:{size:10},autoSkip:false,maxRotation:25},grid:{color:gColor}},
-      y:{min:0,max:6,ticks:{color:tColor,font:{size:12}},grid:{color:gColor}}
-    }
-  }
-});
+// GRAPH 03
+new Chart(document.getElementById('fatigue'),{type:'bar',data:{labels:['그룹1 (10pt)','그룹2 (16pt)'],datasets:[{label:'디지털',data:[4.11,3.89],backgroundColor:B1,borderRadius:5,barPercentage:.55},{label:'인쇄물',data:[4.89,4.78],backgroundColor:GR,borderRadius:5,barPercentage:.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:{ticks:{color:M,font:{size:12}},grid:{color:G},border:{color:G}},y:{min:3,max:5.5,ticks:{color:M,font:{size:11},callback:v=>v.toFixed(1)},grid:{color:G},border:{color:G}}}}});
+
+// GRAPH 04 피험자별 읽기속도
+new Chart(document.getElementById('speed1'),{type:'bar',data:{labels:['A 안승진','B 김춘수','C 오은민'],datasets:[{label:'디지털',data:[82,91,106],backgroundColor:B1,borderRadius:4},{label:'인쇄물',data:[57,72,88],backgroundColor:GR,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legSm},scales:{x:{ticks:{color:M,font:{size:10}},grid:{color:G},border:{color:G}},y:{max:130,ticks:{color:M,font:{size:10},callback:v=>v+'초'},grid:{color:G},border:{color:G}}}}});
+
+new Chart(document.getElementById('speed2'),{type:'bar',data:{labels:['D 배재현','E 정민재','F 이상용'],datasets:[{label:'인쇄물',data:[66,76,70],backgroundColor:GR,borderRadius:4},{label:'디지털',data:[69,80,73],backgroundColor:B1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legSm},scales:{x:{ticks:{color:M,font:{size:10}},grid:{color:G},border:{color:G}},y:{max:100,ticks:{color:M,font:{size:10},callback:v=>v+'초'},grid:{color:G},border:{color:G}}}}});
+
+// GRAPH 05 세부항목
+new Chart(document.getElementById('detail1'),{type:'bar',data:{labels:['선명도(디)','편안함(디)','가독성(디)','선명도(인)','편안함(인)','가독성(인)'],datasets:[{label:'A 안승진',data:[3,4,4,5,5,5],backgroundColor:B1,borderRadius:3,barPercentage:.7},{label:'B 김춘수',data:[4,5,4,5,5,5],backgroundColor:B2,borderRadius:3,barPercentage:.7},{label:'C 오은민',data:[5,4,4,5,4,5],backgroundColor:B3,borderRadius:3,barPercentage:.7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legSm},scales:{x:{ticks:{color:M,font:{size:9},autoSkip:false},grid:{color:G},border:{color:G}},y:{min:0,max:6,ticks:{color:M,font:{size:10}},grid:{color:G},border:{color:G}}}}});
+
+new Chart(document.getElementById('detail2'),{type:'bar',data:{labels:['선명도(디)','편안함(디)','가독성(디)','선명도(인)','편안함(인)','가독성(인)'],datasets:[{label:'D 배재현',data:[4,4,5,5,4,5],backgroundColor:GR,borderRadius:3,barPercentage:.7},{label:'E 정민재',data:[4,4,5,5,5,5],backgroundColor:GR2,borderRadius:3,barPercentage:.7},{label:'F 이상용',data:[4,2,3,5,5,4],backgroundColor:GR3,borderRadius:3,barPercentage:.7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legSm},scales:{x:{ticks:{color:M,font:{size:9},autoSkip:false},grid:{color:G},border:{color:G}},y:{min:0,max:6,ticks:{color:M,font:{size:10}},grid:{color:G},border:{color:G}}}}});
 </script>
 </body>
 </html>
